@@ -26,6 +26,7 @@
         var port = 80;
         var url = 'ws://' + host + ':' + port + '/wsController';
         socket = new WebSocket(url);
+        console.log('URL server: ' + url);
 
         socket.addEventListener('open', () => {
             console.log('Connected to server: ' + socket.url);
