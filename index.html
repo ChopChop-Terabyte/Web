@@ -1,1 +1,98 @@
-zzz
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>WebSocket Led controller</title>
+        <style>
+            #sendid {
+                cursor: pointer;
+            }
+        </style>
+    </head>
+
+    <body>
+    	<h2>Welcome to my world</h2>
+        Send a message:
+        <input type="text" id="text2send">
+        <button id="sendid" onclick="sendMess()">Send</button><br><br>
+        <button id="toggle" onclick="Toggle_Led()">Toggle Led</button>
+        <a class="state">State LED: <span id="stateID">.</span></a>
+
+    </body>
+
+    <script>
+        let currentToggle;
+
+        var host = window.location.hostname;
+        var port = 80;
+        var url = 'ws://' + host + ':' + port + '/wsController';
+        socket = new WebSocket(url);
+        console.log('URL server: ' + url);
+
+        socket.addEventListener('open', () => {
+            console.log('Connected to server: ' + socket.url);
+
+            const messText = 'Hello server!';
+            const toggle = -1;
+            const toSend = Json_handle_toSend(messText, toggle);
+            
+            socket.send(toSend);
+        });
+
+        socket.addEventListener('close', () => {
+            console.log('Disconnected from server');
+        });
+
+        socket.addEventListener('message', (event) => {
+            recvMess(event.data);
+        });
+
+        function Json_handle_toSend(message, toggle) {
+            const dataReturn = {
+                'Message': message,
+                'Toggle': toggle
+            };
+
+            return JSON.stringify(dataReturn);
+        }
+
+        function recvMess(mess) {
+            const JS_Object = JSON.parse(mess);
+            const SV_mess = JS_Object.Message;
+            const toggle = JS_Object.Toggle;
+
+            if (toggle == -1) {
+                console.log('Server say: ' + SV_mess);
+            } else if (toggle == 0) {
+                currentToggle = 0;
+                console.log('Led is OFF');
+                document.getElementById('stateID').innerHTML = 'OFF';
+            }else if (toggle == 1) {
+                currentToggle = 1;
+                console.log('Led is ON');
+                document.getElementById('stateID').innerHTML = 'ON';
+            }
+        }
+
+        function sendMess() {
+            const messText = document.getElementById('text2send').value;
+            const toggle = -1;
+            const toSend = Json_handle_toSend(messText, toggle);
+
+            socket.send(toSend);
+        }
+
+        function Toggle_Led() {
+            const messText = 'Toggle';
+
+            if (currentToggle == 0){
+                const toggle = 1;
+                
+            } else if (currentToggle == 1) {
+                const toggle = 0;
+            }
+            const toSend = Json_handle_toSend(messText, toggle);
+
+            socket.send(toSend);
+        }
+    </script>
+</html>
